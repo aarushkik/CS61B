@@ -46,11 +46,29 @@ fi
 
 mkdir -p .idea/libraries
 
+# --- Undo IntelliJ's Gradle auto-import --------------------------------------
+#
+# IntelliJ detects build.gradle on open and links the project as a Gradle build.
+# That hands module configuration to Gradle, deletes .idea/modules.xml, and
+# leaves the .iml files below orphaned — every import goes red because no module
+# has the library attached any more. Unlink it so the native modules win.
+# The Gradle build itself still works fine from the terminal (./gradlew).
+
+if [ -f .idea/gradle.xml ]; then
+  rm -f .idea/gradle.xml
+  echo "==> Removed .idea/gradle.xml (IntelliJ had auto-linked the Gradle build)"
+fi
+
 # --- Project: SDK, language level, compiler output ---------------------------
+#
+# ExternalStorageConfigurationManager must be false. When true (Gradle import
+# turns it on), IntelliJ stores modules under ~/Library/Application Support/
+# instead of .idea/modules.xml, and everything written here is ignored.
 
 cat > .idea/misc.xml <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="ExternalStorageConfigurationManager" enabled="false" />
   <component name="ProjectRootManager" version="2" languageLevel="${LANG_LEVEL}" default="true" project-jdk-name="${JDK_NAME}" project-jdk-type="JavaSDK">
     <output url="file://\$PROJECT_DIR\$/out" />
   </component>

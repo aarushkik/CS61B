@@ -1,0 +1,3 @@
+Lecture 8 - Resizing and Circular Arrays
+========================================
+

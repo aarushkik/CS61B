@@ -46,12 +46,13 @@ arrows on any test.
 ## Toolchain
 
 - Assignments compile against **Java 25** (`cs61b.javaRelease`), matching the course.
-  Default `java` on this machine is 26.
-- **Gradle runs on a JDK 25**, pinned via `org.gradle.java.home` in
-  `gradle.properties` — currently IntelliJ's bundled JDK. Required: Gradle 9.0
-  aborts on JDK 26 with `Unsupported class file major version 70`. For a
-  standalone JDK: `brew install --cask microsoft-openjdk@25`, then repoint that
-  property. The `cs61b` script has no such constraint.
+  Default `java` here is 26; `--release 25` targets 25 from a newer compiler.
+- **Gradle 9.7.0** via the wrapper, running on JDK 26 directly. No JDK pin needed.
+
+  Don't downgrade the wrapper. Gradle 9.0.0's supported ceiling is JDK **24** —
+  it runs on 25 from the terminal, but IntelliJ enforces the official matrix and
+  refuses to sync: *"maximum compatible Gradle JVM version is 24, minimum
+  compatible Gradle version is 9.4.1."* Anything ≥ 9.4.1 is fine on JDK 26.
 
 ## New assignments
 

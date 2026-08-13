@@ -31,6 +31,25 @@ was missing.
 
 There is no HW05 or HW07 — the course skips those numbers.
 
+## Files that look finished — and are meant to be
+
+Checked every assignment for pre-filled answers. Nothing was stripped, because
+each complete file below is deliberately given by the course, not a leaked solution:
+
+| File | Why it's complete |
+|---|---|
+| `proj3/src/PercolationStats.java` | Spec: *"we've now given you the full solution for this class, so you don't need to worry about this step."* Read it, run its `main`. |
+| `hw06/src/ULLMap.java`, `hw08/src/hashmap/ULLMap.java` | Reference unordered-linked-list map. It's the model you study before writing `BSTMap`. |
+| `proj0/src/ParticleSimulator.java` | `getNeighbors`, `drawParticles`, `toString` are scaffolding. Your only change: call `decrementLifespan()` inside `tick()`. |
+| `proj0/src/Direction.java`, `ParticleFlavor.java` | Given enums. Don't edit. |
+| `hw03/src/IntList.java` — `size`, `iterativeSize`, `get` | Worked examples. The tasks are `incrRecursiveDestructive` + the three optional methods, all still stubs. |
+| `hw01/src/Arithmetic.java` — `product` | Given so you can see a passing test. `sum` is the broken one. |
+| `hw09/src/RedBlackTree.java` — `isRed`, `insert`, node class | Helpers. `flipColors`, `rotateRight`, `rotateLeft`, `insertHelper` are all `// TODO: YOUR CODE HERE`. |
+| `proj3/src/*Visualizer.java`, `PercolationPicture.java` | Tools for the ungraded visualisation task. |
+| `Map61B.java`, `Deque61B.java` | Interfaces. Only proj2 asks you to touch one. |
+
+Deleting these would cost you the material the assignments tell you to read.
+
 ---
 
 ## Homework
