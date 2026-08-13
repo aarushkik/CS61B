@@ -19,5 +19,30 @@ class Dog {
 }
 
 New Java makes classes like this using the abstraction method of the IO class
-This allows for the code to be more readble
-Unlike python with the 
+This allows for the code to be more readable
+Unlike python, when making a constructor, no need for def __init__(self), we can just say Dog() or something else
+Static refers to a variable being a "class variable"
+In Java, to instantiate an instance of the class, it would be Dog d = new Dog(199) instead of d = Dog(199)
+Instance variables are like the variable size
+Instance method is the function that is "returnSound()" and it is part of a class
+We cannot add new instance variable to a class, and they all must obey the blueprint only
+Garbage collector allows for memory to be saved and allows for code to be built easily
+We can return "this" instead of "self" and they mean the same thing
+We can create a function that takes in an object as a dataype
+A static method is similiar to a class method in python where there isn't a "this"
+This function can be called without using the main object like joey.bark() and a method that is just called as Dog.bark()
+The "Dog" in this case is the type of the object and "joey" is the name of the specific object
+Static methods exist because some classes we don't instantiate
+We can can create static variables in classes like "static String binomen = "Canis familiaris"
+public static void main(String[] args) is called this because it is a public method
+It is static, so it doesn't require instantiating the class
+It also returns nothing for the void
+The class' name is main
+It takes an array of Strings as an argument and that is passed by our OS if we run from CMD
+If we have a program that morphs 2 images, then you would run it as java Morph and then the two images
+Those two strings would be the arguments of the program
+List's need to be called ArrayList because it is Java's mutable list
+".add()" adds to the list
+It has to be instantiated as List L = new ArrayList();
+List has multiple implementations like LinkedList and ArrayList
+There are mutliple uses for each type of list
