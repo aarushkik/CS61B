@@ -1,0 +1,108 @@
+#!/usr/bin/env bash
+#
+# CS 61B assignment runner — plain javac/java, no build tool required.
+#
+# Uses the same classpath IntelliJ does (every jar in ../library-sp26), so if
+# something works here it works in the IDE, and vice versa.
+#
+#   ./cs61b compile hw01                 compile src/ and tests/
+#   ./cs61b test    hw01                 compile, then run every test
+#   ./cs61b test    hw06 TestBSTMap      run one test class (regex)
+#   ./cs61b run     hw01 Arithmetic      run a main class (stdin is connected)
+#   ./cs61b clean   hw01                 drop compiled output
+#   ./cs61b list                         show assignments
+
+set -euo pipefail
+
+REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+LIB_DIR="${CS61B_LIBRARY_DIR:-${REPO_DIR}/../library-sp26}"
+BUILD_ROOT="${REPO_DIR}/.cs61b-build"
+
+die() { printf '\033[1;31m[x]\033[0m %s\n' "$1" >&2; exit 1; }
+info() { printf '\033[1;34m==>\033[0m %s\n' "$1"; }
+
+[ -d "$LIB_DIR" ] || die "library-sp26 not found at ${LIB_DIR}. Run setup-cs61b.sh, or set CS61B_LIBRARY_DIR."
+
+# One classpath entry per jar. '*.jar' skips spotbugs-4.7.3.pom, which lives in
+# the same folder and is not a jar.
+classpath() {
+  find "$LIB_DIR" -maxdepth 1 -name '*.jar' | sort | tr '\n' ':'
+}
+
+assignment_dir() {
+  local name="$1"
+  [ -n "$name" ] || die "Specify an assignment, e.g. hw01. See './cs61b list'."
+  [ -d "${REPO_DIR}/${name}/src" ] || die "No such assignment: ${name}. See './cs61b list'."
+  echo "${REPO_DIR}/${name}"
+}
+
+# Compiles src/ and tests/ together into one output dir, mirroring how the
+# course's IntelliJ module is laid out.
+do_compile() {
+  local name="$1"
+  local dir; dir="$(assignment_dir "$name")"
+  local out="${BUILD_ROOT}/${name}"
+
+  mkdir -p "$out"
+  local sources; sources="$(mktemp)"
+  find "${dir}/src" "${dir}/tests" -name '*.java' 2>/dev/null | sort > "$sources"
+  [ -s "$sources" ] || die "No .java files in ${name}."
+
+  info "Compiling ${name} ($(wc -l < "$sources" | tr -d ' ') files)"
+  javac -nowarn -encoding UTF-8 -cp "$(classpath)" -d "$out" "@${sources}"
+  rm -f "$sources"
+}
+
+# The runner itself needs compiling once; cached until the source changes.
+ensure_runner() {
+  local out="${BUILD_ROOT}/_tools"
+  local src="${REPO_DIR}/tools/JUnitRunner.java"
+  if [ ! -f "${out}/JUnitRunner.class" ] || [ "$src" -nt "${out}/JUnitRunner.class" ]; then
+    mkdir -p "$out"
+    javac -nowarn -cp "$(classpath)" -d "$out" "$src"
+  fi
+}
+
+do_test() {
+  local name="$1" pattern="${2:-.*}"
+  do_compile "$name"
+  ensure_runner
+
+  local dir; dir="$(assignment_dir "$name")"
+  local out="${BUILD_ROOT}/${name}"
+
+  info "Running tests in ${name}${2:+ matching '${2}'}"
+  # cd into the assignment so relative data paths (proj3/inputFiles, proj4a/static) resolve.
+  cd "$dir"
+  java -cp "${BUILD_ROOT}/_tools:${out}:$(classpath)" JUnitRunner "$out" "$pattern"
+}
+
+do_run() {
+  local name="$1" main="${2:-}"
+  [ -n "$main" ] || die "Specify a main class, e.g. ./cs61b run hw01 Arithmetic"
+  do_compile "$name"
+
+  local dir; dir="$(assignment_dir "$name")"
+  info "Running ${main}"
+  cd "$dir"
+  java -cp "${BUILD_ROOT}/${name}:$(classpath)" "$main"
+}
+
+case "${1:-}" in
+  compile) do_compile "${2:-}" ;;
+  test)    do_test "${2:-}" "${3:-.*}" ;;
+  run)     do_run "${2:-}" "${3:-}" ;;
+  clean)
+    if [ -n "${2:-}" ]; then rm -rf "${BUILD_ROOT:?}/${2}"; info "Cleaned ${2}"
+    else rm -rf "$BUILD_ROOT"; info "Cleaned all build output"; fi ;;
+  list)
+    info "Assignments:"
+    for d in "${REPO_DIR}"/*/; do
+      n="$(basename "$d")"
+      [ -d "${d}src" ] || continue
+      t=$([ -d "${d}tests" ] && echo "has tests" || echo "no tests")
+      printf '    %-16s %s\n' "$n" "$t"
+    done ;;
+  *)
+    sed -n '3,14p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//' ;;
+esac

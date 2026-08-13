@@ -1,0 +1,129 @@
+/*
+ * CS 61B Spring 2026 — build configuration for independent study.
+ *
+ * The course has no package manager: every dependency is a loose .jar in the
+ * cloned library-sp26 repo. This build puts that whole folder on the classpath
+ * of every assignment, which is the Gradle equivalent of the global library the
+ * official IntelliJ instructions have you create by hand.
+ *
+ * Common tasks:
+ *   ./gradlew :hw01:test                    run one assignment's tests
+ *   ./gradlew :hw01:test --tests '*sum*'    run a single test method
+ *   ./gradlew :hw01:runMain -PmainClass=Arithmetic
+ *   ./gradlew testAll                       run every assignment that compiles
+ */
+
+// --- Where the jars live -----------------------------------------------------
+
+// Defaults to the sibling clone. Override in gradle.properties or with
+// -Pcs61b.libraryDir=/some/other/path if you keep library-sp26 elsewhere.
+def libraryDir = file(
+    providers.gradleProperty('cs61b.libraryDir').getOrElse("${rootDir}/../library-sp26")
+)
+
+if (!libraryDir.isDirectory()) {
+    throw new GradleException(
+        "library-sp26 not found at ${libraryDir}.\n" +
+        "Clone it next to this repo:\n" +
+        "  git clone https://github.com/Berkeley-CS61B/library-sp26.git ${rootDir}/../library-sp26\n" +
+        "or set cs61b.libraryDir in gradle.properties."
+    )
+}
+
+// Java release to compile against. CS 61B sp26 uses JDK 25; any newer JDK can
+// still target it via --release, so this stays correct on JDK 26+.
+def javaRelease = (providers.gradleProperty('cs61b.javaRelease').getOrElse('25')) as Integer
+
+// --- Shared configuration for every assignment -------------------------------
+
+subprojects {
+    apply plugin: 'java'
+
+    // '*.jar' deliberately skips spotbugs-4.7.3.pom, which sits in the same folder.
+    def cs61bLibrary = fileTree(dir: libraryDir, include: '*.jar')
+
+    sourceSets {
+        // The skeleton uses src/ and tests/, not Gradle's src/main/java layout.
+        main {
+            java.srcDirs = ['src']
+            // Assignments read data files by relative path (proj3/inputFiles,
+            // proj4a/static), so those stay on disk rather than being copied
+            // into build/resources. See workingDir below.
+            resources.srcDirs = []
+        }
+        test {
+            java.srcDirs = ['tests']
+            resources.srcDirs = []
+        }
+    }
+
+    dependencies {
+        // testImplementation extends implementation, so one declaration covers
+        // src/ and tests/ — including junit-platform-launcher, which Gradle
+        // needs on the test runtime classpath.
+        implementation cs61bLibrary
+    }
+
+    tasks.withType(JavaCompile).configureEach {
+        options.encoding = 'UTF-8'
+        options.release = javaRelease
+        // The skeleton has unchecked generic array creation in several places
+        // (MyHashMap's Collection<Node>[] buckets, for one). Not your bug.
+        options.compilerArgs << '-Xlint:-unchecked' << '-Xlint:-deprecation'
+    }
+
+    tasks.withType(Test).configureEach {
+        // Jupiter for the @Test/@DisplayName suites, vintage for the JUnit 4
+        // ones (hw06, hw08, proj0 still import org.junit.Test).
+        useJUnitPlatform()
+
+        workingDir = projectDir   // so 'inputFiles/input1.txt' resolves
+
+        testLogging {
+            events 'passed', 'skipped', 'failed'
+            exceptionFormat = 'full'
+            showStandardStreams = false
+        }
+
+        // Several assignments include timing/performance tests that are slow
+        // and interactive; they are not part of correctness grading.
+        systemProperty 'java.awt.headless', 'false'
+    }
+
+    // Assignments with a main() — Arithmetic, PercolationStats, the ngordnet
+    // server, StdDraw visualizers. standardInput is wired up because several
+    // read from StdIn.
+    tasks.register('runMain', JavaExec) {
+        group = 'application'
+        description = "Run a main class, e.g. ./gradlew :${project.name}:runMain -PmainClass=Arithmetic"
+        classpath = sourceSets.main.runtimeClasspath
+        workingDir = projectDir
+        standardInput = System.in
+        mainClass = providers.gradleProperty('mainClass').orElse('Main')
+    }
+}
+
+// --- Convenience -------------------------------------------------------------
+
+/*
+ * Note: `./gradlew build` at the root will FAIL until you write the code.
+ * hw06 has no BSTMap.java (you create it) and hw08's MyHashMap is an unfinished
+ * skeleton that doesn't yet satisfy Map61B. That's the assignment, not a broken
+ * setup. Run per-assignment tasks instead, or use testAll below.
+ */
+tasks.register('testAll') {
+    group = 'verification'
+    description = 'Run tests for every assignment, continuing past unimplemented ones.'
+    dependsOn subprojects.collect { "${it.path}:test" }
+}
+
+tasks.register('assignments') {
+    group = 'help'
+    description = 'List the assignment subprojects Gradle discovered.'
+    def names = subprojects.collect { it.name }.sort()
+    doLast {
+        println "Assignments (${names.size()}):"
+        names.each { println "  :${it}" }
+        println "\nRun one with: ./gradlew :hw01:test"
+    }
+}

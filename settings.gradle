@@ -1,0 +1,20 @@
+rootProject.name = 'cs61b-sp26'
+
+/*
+ * Each assignment folder (hw01, proj0, ...) becomes its own Gradle subproject.
+ *
+ * This matters: several assignments declare colliding fully-qualified names —
+ * proj1/src/Deque61B.java and proj2/src/Deque61B.java are both in the default
+ * package, and proj4a and proj4cd each ship a main.Main and a main.NGramMap.
+ * A single flat source set would refuse to compile. One subproject per folder
+ * gives each assignment an isolated classpath, exactly like opening the folder
+ * on its own in IntelliJ (which is what the course tells students to do).
+ *
+ * Discovery is automatic, so `git pull skeleton main` can add hw10 without
+ * anyone editing this file.
+ */
+rootDir.eachDir { dir ->
+    if (!dir.name.startsWith('.') && new File(dir, 'src').isDirectory()) {
+        include dir.name
+    }
+}
