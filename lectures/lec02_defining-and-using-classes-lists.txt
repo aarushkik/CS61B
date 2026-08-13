@@ -1,3 +1,23 @@
 Lecture 2 - Defining and Using Classes, Lists
 =============================================
 
+class Dog {
+    int size;
+
+    Dog(int s){
+        size = s;
+    }
+
+    void returnSound(){
+        if(size >= 30){
+            IO.println("WOOOOOO")
+        }
+        else{
+            IO.println("woooooo")
+        }
+    }
+}
+
+New Java makes classes like this using the abstraction method of the IO class
+This allows for the code to be more readble
+Unlike python with the 
