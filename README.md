@@ -54,18 +54,3 @@ arrows on any test.
   refuses to sync: *"maximum compatible Gradle JVM version is 24, minimum
   compatible Gradle version is 9.4.1."* Anything ≥ 9.4.1 is fine on JDK 26.
 
-## New assignments
-
-```bash
-git pull skeleton main      # or: --no-rebase --allow-unrelated-histories
-./configure-intellij.sh     # regenerate modules
-```
-Gradle discovers new folders on its own.
-
-## Notes
-
-- `hw06` and `hw08` don't compile until you write `BSTMap` / finish `MyHashMap` —
-  that's the assignment, not a broken setup.
-- `proj1` and `proj2` ship their tests disabled; writing them is part of the work.
-- `proj4a`/`proj4cd` need ngrams data under `proj4*/data/`, distributed separately.
-- `hw04` is CBTF exam practice (no code). There is no hw05 or hw07.
