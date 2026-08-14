@@ -1,3 +1,67 @@
 Lecture 3 - Lists, Arrays, Maps, References
 ===========================================
 
+In Python if we want to retrieve from a list we have to go to L[0]
+If we use ArrayList in java is L.get(0)
+Java code no longer uses List without specifying the type
+We need to call is List<String> L = new ArrayList<>() so that we have it easier use
+An ArrayList with the datatype stated before, means that we can't have more than one datatype in a given ArrayList
+An array is a restricted version of a list
+Instantiating an array is String[] n = new String[5]
+An array is immutable, meaning that we cannot add on to an array ,but we can change values
+We can declare an array by doing y = new int[]{1,2,3,4,5,6}
+In Python, we have maps where we assign keys to certain values or key-value pairs
+The key can be anything
+It is called a Dictionary in Python or an Associative Array
+For example:
+             census = {'a':10,
+                 'b':25}
+             num = d['a']
+The example above is in Python
+In Java, there are many types of maps
+For example, this in Java would be:
+            Map<Character, Integer> census = new HashMap<>();
+            census.put('a', 10);
+            census.put('b', 25);
+            int num = census.get('a')
+When creating your own personal object, we don't actually make a new object when we say another instance of the object is equal
+For example:
+            Walrus a = new Walrus(1000, 4);
+            Walrus b;
+            b = a;
+            b.weight = 20; //Over here the weight of b changes but so does the weight of a
+                           //This is because the of the fact that we are referencing the same creation of the Walrus object
+In contrast:
+            int x = 5;
+            int y;
+            y = x;
+            x = 5;         //Just the x changes because the numbers are different objects
+Your computer stores information as memory
+It is stored in bits which are either 1 or 0
+It is basically converting binary to base 10 or another base
+The Java interpreter needs datatypes so that it can use a bit sequence to identify a certain value
+When you declare a variable of a certain type in Java:
+Your computer sets aside exactly enough bits to hold a thing of that type
+Java creates an internal table that maps each variable name to a location
+Java does not write anything into the reserved boxes of a certain variable
+For safety, Java will not let you access a variable that is uninitalized
+For any variables, if we are given y and x, and we state y = x, then y = x copies all the bits from x into y, meaning that if we change x or y neither has an effect
+There are 8 primitive types in Java
+When we instantiate an Object, Java first allocates a box of bits for each instance variable of the class and fills them with a given default value
+The constructor, when we use it, usually fills the box with an assigned value
+Strings are immutable in java, but we can make it into a char array or even an ArrayList with a Character datatype for max customizablity
+The new "function" (not actually one) returns it's address based on the 64 bit system
+When we construct an object, we go to the address and go to the table to change the values
+When we say new Object, we create the table and then the constructor in the object creates more memory slots in the table
+When we say one object is equal to another, we take the 64 bits from a, equal to the same address in b so they are the same
+Java is pass-by-value and not pass-by-reference
+We can create a function like:
+public static double average(double a, double b){
+    return (a+b)/2;
+}
+Passing parameters copies the bits of the variables passed in to a different scope, but the same rules apply
+There are 9 types of variables in Java
+8 are primitive types
+The 9th type is a custom object
+We can create a 2D array like int[][] x = new int[5][5]
+A 2D array is basically just an array of arrays
