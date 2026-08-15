@@ -1,3 +1,6 @@
+import java.util.ArrayList;
+import java.util.List;
+
 public class DoubleUp {
    /**
      * Returns a new string where each character of the given string is repeated twice.
@@ -5,7 +8,13 @@ public class DoubleUp {
      */
    public static String doubleUp(String s) {
       // TODO: Fill in this function
-      return null;
+      String doubledUp = "";
+
+      for(int i = 0; i < s.length(); i++){
+         doubledUp += s.charAt(i);
+         doubledUp += s.charAt(i);
+      }
+      return doubledUp;
    }
    
    public static void main(String[] args) {
