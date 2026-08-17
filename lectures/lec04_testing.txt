@@ -1,3 +1,35 @@
 Lecture 4 - Testing
 ===================
+In the real world, people believe their code works through rigorous testing
+We can test our functions through classes:
+public class TestSort{
+    @Test
+    public void testSort() {
+        String[] input = {"a", "c", "b"};
+        String[] expected = {"a", "b", "c"};
+        //We can now just run this function as a test function because of @Test
+        Sort.sort(input);
+        assertThat(input).isEqualTo(expected);
+    }
+}
 
+public class Sort{
+   public static String[] sort(String[] s){
+        for(int i = 0; i < s.length; i++){
+            for(int j = i+1; j < s.length; j++){
+                if(s[i].compareTo(s[j]) < 0){
+                    String temp = s[i];
+                    s[i] = s[j];
+                    s[j] = temp;
+                }
+            }
+        }
+   }
+}
+The actual lecture makes a method called findSmallest() that serves as a helper function for this implementation of selection sort
+They both solve in the same way but this is lest abstracted
+Static means that that function/var belongs to the class iteslf, rather than a specific instance of that class
+Cannot use this or super
+When practing recursion, we learned that we can do selection sort after swapping the first index with the smallest and then pass it into itself with the rest of the array
+We can use the debugger to go through each stop point to see all the problems
+Test driven development is the way to approach solving problems.
