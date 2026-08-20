@@ -1,3 +1,109 @@
 Lecture 5 - Packages, Recursion, IntLists
 =========================================
+Lets say that we want to name two classes with the same name
+This will throw an error, so we can set the package, so that we can have the same
+We can import static members of a class using import static ...
+Java doesn't look at every folder in your computer, and it only looks at the CLASSPATH
+A .jar file is a compressed version of a Java file
+If we put public in front of a class or method, it means that it can be used by code in other packages
+If we don't put public, then it is only usable by code in the same package
+If we put private, it is only usable/visible inside the class
+Arrays are not primitive types in Java so that means that they are objects
+There are multiple ways to instantiate an array (eg. set the values before, an empty set values for a given length, and an emtpy array that is basically useless)
+Arrays are not mutable, meaning that they can't change in length
+Additionally, we have lists but, unlike python, they are an import statement, meaning that they are a seperate import
+They each have seperate functions and uses while also having tradeoffs
+IntList:
+public class IntList {
+    int first;
+    IntList rest;
+
+    public IntList(int first, IntList rest) {
+        this.first = first;
+        this.rest = rest;
+    }
+    public int get(int i){ //Returns the value at index i
+        if(i == 0){
+            return this.first;
+        }
+        return rest.get(i - 1)
+    }
+
+    public int getIterative(int i){ //This is an iterative approach with for-loop instead of while-loop
+        Intlist current = this;
+        for(int n = 0; n < i; i++){
+            current  = current.rest;
+            if(n == i){
+                return current.first;
+            }
+        }
+    }
+    public IntList incrementRecursiveNonDestructive(){
+        IntList newRest = null;
+        if(rest != null){
+            newRest = rest.incrementRecursiveNonDestructive();
+        }
+        return new IntList(first + 1, newRest);
+    }
+
+
+    public int size() { //Returns the size of the list
+        if(rest == null){
+            return 1;
+        }
+        return rest.size() + 1;
+    }
+
+    public static void main(String[] args){
+        IntList myList = new IntList();
+        myList.first = 67; //Sets first value as 67
+
+        myList.rest = new IntList(); //This creates a box inside of the IntList myList that is another list
+        myList.rest.first = 6; //This sets that new list's first value as 6
+
+        myList.rest.rest = new IntList(); //This creates another box inside of the rest value of the IntList
+        myList.rest.rest.first = 7; //This sets that first value of that new IntList as 7
+        //In summary, this basically allows you to nest lists
+        //This is our own custom class for a list
+
+        // V2
+
+        IntList myList = new IntList(67, null);
+
+        myList.rest = new IntList(6, null);
+
+        myList.rest.rest = new IntList(7, null);
+
+        // V3
+
+        IntList l1 = new IntList(5, new IntList(10, new IntList(15, null)));
+
+        IntList l2 = new IntList(5, null);
+        l2.rest = new IntList(10, null);
+        l2.rest.rest = new IntList(15, null);
+
+        IntList l3 = new IntList(15, null);
+        l3 = new IntList(10, l3);
+        l3 = new IntList(5, l3);
+
+    }
+}
+public class TestIntList(){
+    @Test
+    public void testIntList(){
+        IntList l1 = new IntList(5, new IntList(10, new IntList(15, null)));
+
+        assertThat(l1.size()).isEqualTo(3);
+
+        assertThat(l1.get(0)).isEqualTo(5);
+        assertThat(l1.get(1)).isEqualTo(10);
+
+        IntList incremented = l1.incrementRecursiveNonDesctructive;
+        assertThat(incremented.get(0)).isEqualTo(6);
+        assertThat(incremented.get(0)).isEqualTo(11);
+        assertThat(incremented.get(0)).isEqualTo(16);
+        assertThat(incremented.get(0)).isEqualTo(5);
+        assertThat(l1.get(0)).isEqualTo(5);
+    }
+}
 
