@@ -1,3 +1,1066 @@
 Lecture 6 - SLLists, Nested Classes, Sentinel Nodes
 ===================================================
+In the previous lecture, IntList worked, but it was awkward because the user of the list had to directly interact with the nodes
+For example, if we wanted to add something to the front of an IntList, we might have to do something like:
+IntList L = new IntList(10, null);
+L = new IntList(5, L);
+This works, but the person using the list has to understand exactly how the linked list is built internally
+We want to create an abstraction where the user can simply do things like:
+L.addFirst(5);
+L.addLast(10);
+L.size();
+Instead of directly manipulating .rest and the individual nodes
+The solution is to create an SLList, which stands for Singly Linked List
+An SLList is different from an IntList because the SLList represents the ENTIRE list while an IntNode represents ONE node inside of the list
+In other words:
+SLList = the whole linked list
+IntNode = one box/node inside the linked list
+This lecture gradually improves IntList into SLList by hiding the internal nodes, using nested classes, storing the size, supporting empty lists, and finally introducing sentinel nodes.
 
+Basic SLList:
+
+public class SLList {
+    public IntNode first;
+
+
+    public SLList(int x) {
+        first = new IntNode(x, null);
+    }
+}
+
+The IntNode class could initially look like:
+
+public class IntNode {
+    public int item;
+    public IntNode next;
+
+
+    public IntNode(int item, IntNode next) {
+        this.item = item;
+        this.next = next;
+    }
+}
+
+If we make:
+
+SLList L = new SLList(10);
+
+Then we basically have:
+
+L
+|
+v
+SLList
+|
+first
+|
+v
+10 -> null
+
+If the list contains 5, 10, and 15, it looks like:
+
+SLList
+  |
+ first
+  |
+  v
+  5 -> 10 -> 15 -> null
+
+The SLList itself does NOT store the number 5
+Instead, the SLList stores a reference called first which points to an IntNode
+That IntNode stores 5
+Each IntNode then stores a next reference which points to another IntNode
+
+We can now make an addFirst method so that users don't have to manually change first:
+
+public void addFirst(int x) {
+    first = new IntNode(x, first);
+}
+
+Lets say we start with:
+
+first
+ |
+ v
+10 -> 20 -> null
+
+And call:
+
+L.addFirst(5);
+
+new IntNode(x, first) becomes:
+
+new IntNode(5, first);
+
+The new node's item becomes 5
+The new node's next points to the OLD first node, which contains 10
+Then first gets changed so that it points to the new node
+
+So:
+
+Before:
+
+
+first
+ |
+ v
+10 -> 20 -> null
+
+
+After:
+
+
+first
+ |
+ v
+5 -> 10 -> 20 -> null
+
+This means that addFirst only needs to change a small number of references
+It does not need to go through the entire list
+
+We can also create getFirst:
+
+public int getFirst() {
+    return first.item;
+}
+
+If:
+
+first -> 5 -> 10 -> 15
+
+Then:
+
+L.getFirst();
+
+returns:
+
+5
+
+One important goal of SLList is that the user should NOT have to know about IntNode
+For example, we don't want the user doing:
+
+L.first.next.next = null;
+
+Because then the user could accidentally destroy part of the list
+For this reason, we should make first private:
+
+private IntNode first;
+
+private means that the variable can only be directly accessed from inside that class
+Therefore code outside SLList can't do:
+
+L.first = null;
+
+But code inside SLList can still use first:
+
+public void addFirst(int x) {
+    first = new IntNode(x, first);
+}
+
+This concept is called encapsulation
+Encapsulation basically means that we hide the internal implementation of an object and force users to interact with it through methods
+For example, the user can call:
+
+L.addFirst(5);
+L.getFirst();
+L.size();
+
+But the user doesn't need to know how SLList stores its data internally
+This is similar to using a car
+You use the steering wheel and pedals without directly controlling the engine
+The methods are the controls while the private variables are the internal machinery
+
+Nested Classes:
+IntNode only exists because SLList needs nodes
+There isn't much reason for someone outside SLList to directly create IntNodes
+Because of this, we can put IntNode INSIDE the SLList class
+This is called a nested class
+
+public class SLList {
+
+
+    private class IntNode {
+        public int item;
+        public IntNode next;
+
+
+        public IntNode(int item, IntNode next) {
+            this.item = item;
+            this.next = next;
+        }
+    }
+
+
+    private IntNode first;
+
+
+    public SLList(int x) {
+        first = new IntNode(x, null);
+    }
+}
+
+Now IntNode is inside SLList
+This makes sense because IntNode is basically an implementation detail of SLList
+The user shouldn't have to know that IntNode even exists
+
+We can also make the nested IntNode class static:
+
+private static class IntNode {
+    public int item;
+    public IntNode next;
+
+
+    public IntNode(int item, IntNode next) {
+        this.item = item;
+        this.next = next;
+    }
+}
+
+A normal non-static inner class automatically has a connection/reference to the specific outer object that created it
+For example, a non-static IntNode inside an SLList would internally be associated with a particular SLList object
+However, an IntNode doesn't need to know which SLList it belongs to
+It only needs:
+
+item
+next
+
+So we can make it static
+static in this situation does NOT mean that every SLList shares the same IntNodes
+It means that each IntNode does not require an automatic reference to an outer SLList object
+
+So our improved version looks like:
+
+public class SLList {
+
+
+    private static class IntNode {
+        public int item;
+        public IntNode next;
+
+
+        public IntNode(int item, IntNode next) {
+            this.item = item;
+            this.next = next;
+        }
+    }
+
+
+    private IntNode first;
+
+
+    public SLList(int x) {
+        first = new IntNode(x, null);
+    }
+
+
+    public void addFirst(int x) {
+        first = new IntNode(x, first);
+    }
+
+
+    public int getFirst() {
+        return first.item;
+    }
+}
+
+addLast:
+We also want to be able to add an item to the END of the list
+For example:
+
+5 -> 10 -> 15
+
+After:
+
+L.addLast(20);
+
+We want:
+
+5 -> 10 -> 15 -> 20
+
+Unlike addFirst, we don't immediately know where the final node is
+We only have a reference to first
+Therefore, we need to travel through the list until we reach the final node
+We can use another IntNode reference called p:
+
+IntNode p = first;
+
+p points to the same object as first
+It does NOT make a copy of the node
+
+For example:
+
+first ---+
+         |
+         v
+        [5] -> [10] -> [15]
+
+
+p -------+
+
+If we do:
+
+p = p.next;
+
+Then p moves to the next node:
+
+first
+ |
+ v
+[5] -> [10] -> [15]
+        ^
+        |
+        p
+
+first did NOT move
+Only p changed what it references
+
+We can repeatedly move p until p.next is null:
+
+public void addLast(int x) {
+    IntNode p = first;
+
+
+    while (p.next != null) {
+        p = p.next;
+    }
+
+
+    p.next = new IntNode(x, null);
+}
+
+Example:
+
+first
+ |
+ v
+5 -> 10 -> 15 -> null
+
+Initially:
+
+p -> 5
+
+Since 5.next is not null:
+
+p -> 10
+
+Since 10.next is not null:
+
+p -> 15
+
+15.next is null, so the loop stops
+Then:
+
+p.next = new IntNode(20, null);
+
+Giving:
+
+5 -> 10 -> 15 -> 20 -> null
+
+p is often just used as a temporary pointer/reference for walking through linked lists
+You could technically name it anything:
+
+IntNode current = first;
+
+The important idea is that changing current/p does NOT change first unless you explicitly assign something to first
+
+Size:
+We also want:
+
+L.size();
+
+One way to find the size would be to walk through every node and count them
+For example:
+
+private static int size(IntNode p) {
+    if (p.next == null) {
+        return 1;
+    }
+    return 1 + size(p.next);
+}
+
+
+public int size() {
+    return size(first);
+}
+
+For:
+
+5 -> 10 -> 15
+
+It essentially calculates:
+
+size(5)
+= 1 + size(10)
+= 1 + 1 + size(15)
+= 1 + 1 + 1
+= 3
+
+This works, but there is a problem
+Every time we call size(), Java has to go through the entire linked list
+If there are 1,000,000 elements, size() would have to count through all 1,000,000 nodes every time it is called
+Instead, we can store the size as an instance variable:
+
+private int size;
+
+Then when we create a list:
+
+public SLList(int x) {
+    first = new IntNode(x, null);
+    size = 1;
+}
+
+When we add something:
+
+public void addFirst(int x) {
+    first = new IntNode(x, first);
+    size += 1;
+}
+
+And size() becomes:
+
+public int size() {
+    return size;
+}
+
+Instead of counting all the nodes, Java can simply return the stored number
+This is much faster
+This idea is sometimes called caching
+We are saving information that would otherwise have to be recalculated
+
+However, this means that every method that changes the number of items has to correctly update size
+For example:
+
+public void addLast(int x) {
+    IntNode p = first;
+
+
+    while (p.next != null) {
+        p = p.next;
+    }
+
+
+    p.next = new IntNode(x, null);
+    size += 1;
+}
+
+If we forget size += 1, then the object can become inconsistent
+For example:
+
+Actual list:
+5 -> 10 -> 15
+
+
+size variable:
+2
+
+The size variable would then be incorrect
+
+Empty SLLists:
+So far, our constructor requires an item:
+
+public SLList(int x) {
+    first = new IntNode(x, null);
+    size = 1;
+}
+
+But we also want to be able to create an empty list:
+
+SLList L = new SLList();
+
+A first attempt would be:
+
+public SLList() {
+    first = null;
+    size = 0;
+}
+
+Then an empty list would look like:
+
+first -> null
+
+addFirst actually still works:
+
+public void addFirst(int x) {
+    first = new IntNode(x, first);
+    size += 1;
+}
+
+If first is null and we call:
+
+L.addFirst(5);
+
+Then:
+
+new IntNode(5, first)
+
+is basically:
+
+new IntNode(5, null)
+
+So we correctly get:
+
+first -> 5 -> null
+
+However, addLast has a problem:
+
+public void addLast(int x) {
+    IntNode p = first;
+
+
+    while (p.next != null) {
+        p = p.next;
+    }
+
+
+    p.next = new IntNode(x, null);
+    size += 1;
+}
+
+If the list is empty:
+
+first = null;
+
+Then:
+
+IntNode p = first;
+
+means:
+
+p = null;
+
+Then Java tries to evaluate:
+
+p.next
+
+But p is null
+So this is essentially trying to do:
+
+null.next
+
+This causes a NullPointerException
+
+One possible solution is to make a special case:
+
+public void addLast(int x) {
+    size += 1;
+
+
+    if (first == null) {
+        first = new IntNode(x, null);
+        return;
+    }
+
+
+    IntNode p = first;
+
+
+    while (p.next != null) {
+        p = p.next;
+    }
+
+
+    p.next = new IntNode(x, null);
+}
+
+This works
+However, having lots of special cases makes code more complicated
+The more operations and data structures we create, the more annoying cases like this can become
+Instead, CS61B introduces a sentinel node
+
+Sentinel Nodes:
+A sentinel node is a FAKE node that is always at the beginning of the linked list
+Its item does not represent actual data
+Its main purpose is to make the linked list structure easier to work with
+
+Instead of:
+
+first -> 5 -> 10 -> 15 -> null
+
+We make:
+
+sentinel -> ? -> 5 -> 10 -> 15 -> null
+
+More accurately, sentinel itself points to the fake node:
+
+sentinel
+   |
+   v
+ [?] -> [5] -> [10] -> [15] -> null
+
+The ? represents some value that we do not care about
+Java requires an int to contain an actual integer, so we could use something random like:
+
+63
+
+The 63 has absolutely no meaning
+It is never considered one of the items in the list
+
+So our constructor becomes:
+
+public SLList() {
+    sentinel = new IntNode(63, null);
+    size = 0;
+}
+
+Instead of having:
+
+private IntNode first;
+
+we now have:
+
+private IntNode sentinel;
+
+An EMPTY list now looks like:
+
+sentinel
+   |
+   v
+ [63] -> null
+
+The sentinel exists even though there are zero actual items
+
+A list containing 5 looks like:
+
+sentinel
+   |
+   v
+ [63] -> [5] -> null
+
+A list containing 5, 10, and 15 looks like:
+
+sentinel
+   |
+   v
+ [63] -> [5] -> [10] -> [15] -> null
+
+The first REAL item is therefore:
+
+sentinel.next
+
+The first real item's value is:
+
+sentinel.next.item
+
+The sentinel itself NEVER counts as an item
+For:
+
+[63] -> [5] -> [10] -> [15]
+  ^
+sentinel
+
+The size is:
+
+3
+
+NOT:
+
+4
+
+addFirst with a sentinel:
+Before:
+
+sentinel -> 10 -> 20
+
+We want:
+
+sentinel -> 5 -> 10 -> 20
+
+We can write:
+
+public void addFirst(int x) {
+    sentinel.next = new IntNode(x, sentinel.next);
+    size += 1;
+}
+
+sentinel.next originally points to 10
+So:
+
+new IntNode(5, sentinel.next)
+
+creates:
+
+5 -> 10 -> 20
+
+Then:
+
+sentinel.next = ...
+
+makes the sentinel point to the new 5 node:
+
+sentinel -> 5 -> 10 -> 20
+
+getFirst becomes:
+
+public int getFirst() {
+    return sentinel.next.item;
+}
+
+The major advantage of the sentinel becomes obvious with addLast
+Instead of starting at first:
+
+IntNode p = first;
+
+We start at sentinel:
+
+IntNode p = sentinel;
+
+So:
+
+public void addLast(int x) {
+    IntNode p = sentinel;
+
+
+    while (p.next != null) {
+        p = p.next;
+    }
+
+
+    p.next = new IntNode(x, null);
+    size += 1;
+}
+
+This works even if the list is empty
+
+Lets say the list is empty:
+
+sentinel -> null
+
+Then:
+
+IntNode p = sentinel;
+
+So:
+
+p -> sentinel
+
+The condition:
+
+p.next != null
+
+is false because sentinel.next is null
+Therefore, the loop doesn't run
+
+Then:
+
+p.next = new IntNode(5, null);
+
+gives:
+
+sentinel -> 5 -> null
+
+So we no longer need:
+
+if (first == null) {
+    ...
+}
+
+The same addLast code works whether there are:
+0 items
+1 item
+10 items
+1,000 items
+
+This is the main reason sentinel nodes are useful
+They eliminate special cases, especially involving empty lists
+The CS61B text specifically introduces sentinels as the cleaner alternative to special-case logic for addLast.
+
+Constructors with a sentinel:
+Empty constructor:
+
+public SLList() {
+    sentinel = new IntNode(63, null);
+    size = 0;
+}
+
+Constructor starting with one element:
+
+public SLList(int x) {
+    sentinel = new IntNode(63, null);
+    sentinel.next = new IntNode(x, null);
+    size = 1;
+}
+
+Full SLList:
+
+public class SLList {
+
+
+    private static class IntNode {
+        public int item;
+        public IntNode next;
+
+
+        public IntNode(int item, IntNode next) {
+            this.item = item;
+            this.next = next;
+        }
+    }
+
+
+    private IntNode sentinel;
+    private int size;
+
+
+    public SLList() {
+        sentinel = new IntNode(63, null);
+        size = 0;
+    }
+
+
+    public SLList(int x) {
+        sentinel = new IntNode(63, null);
+        sentinel.next = new IntNode(x, null);
+        size = 1;
+    }
+
+
+    public void addFirst(int x) {
+        sentinel.next = new IntNode(x, sentinel.next);
+        size += 1;
+    }
+
+
+    public int getFirst() {
+        return sentinel.next.item;
+    }
+
+
+    public void addLast(int x) {
+        IntNode p = sentinel;
+
+
+        while (p.next != null) {
+            p = p.next;
+        }
+
+
+        p.next = new IntNode(x, null);
+        size += 1;
+    }
+
+
+    public int size() {
+        return size;
+    }
+}
+
+Example:
+
+public static void main(String[] args) {
+    SLList L = new SLList();
+
+
+    L.addFirst(10);
+    // sentinel -> 10
+
+
+    L.addFirst(5);
+    // sentinel -> 5 -> 10
+
+
+    L.addLast(15);
+    // sentinel -> 5 -> 10 -> 15
+
+
+    System.out.println(L.getFirst());
+    // 5
+
+
+    System.out.println(L.size());
+    // 3
+}
+
+References are especially important with linked lists
+If we write:
+
+IntNode p = sentinel.next;
+
+We are NOT creating another IntNode
+p and sentinel.next refer to the same IntNode object
+
+For example:
+
+sentinel -> [5] -> [10]
+             ^
+             |
+             p
+
+If we then do:
+
+p.item = 100;
+
+The actual list changes:
+
+sentinel -> [100] -> [10]
+
+Because p is a reference to the real node, not a copy
+
+However:
+
+p = p.next;
+
+does NOT modify the list
+It only changes which node p points to
+
+Before:
+
+sentinel -> [5] -> [10]
+             ^
+             |
+             p
+
+After:
+
+p = p.next;
+
+We have:
+
+sentinel -> [5] -> [10]
+                    ^
+                    |
+                    p
+
+The actual links in the list have not changed
+
+But:
+
+p.next = something;
+
+DOES modify the list because we are changing the next field inside the node
+
+Important distinction:
+
+p = p.next;
+
+Changes the reference p itself
+
+p.next = ...
+
+Changes the node that p points to
+
+Invariants:
+An invariant is something that should ALWAYS be true about a data structure as long as the code is working correctly
+For an SLList with a sentinel, important invariants include:
+The sentinel reference always points to the sentinel node
+The sentinel always exists, even when the list is empty
+The first real item, if one exists, is always sentinel.next
+The first real item's value is sentinel.next.item
+size always represents the number of REAL elements in the list
+The sentinel is never included in size
+The final real node's next is null
+
+For example:
+
+sentinel -> 5 -> 10 -> 15 -> null
+size = 3
+
+This follows the invariants
+
+But:
+
+sentinel -> 5 -> 10 -> 15 -> null
+size = 2
+
+would break the size invariant
+
+Main differences between IntList and SLList:
+IntList:
+
+5 -> 10 -> 15
+
+The first IntList object is itself part of the data
+The user has to interact directly with nodes/rest
+It is called a "naked recursive data structure" because the recursive structure is exposed directly to the user
+
+SLList:
+
+SLList
+ |
+ sentinel
+ |
+ v
+fake -> 5 -> 10 -> 15
+
+The SLList object acts as a wrapper around the nodes
+Users interact with methods like addFirst instead of directly changing nodes
+The internal IntNode class can be private
+We can store extra information like size inside the SLList
+A sentinel makes empty lists easier to handle
+
+Important things to remember:
+SLList represents the whole list
+IntNode represents one node
+item stores the value in a node
+next stores a reference to the next node
+The final node normally has next == null
+private hides implementation details from outside classes
+A nested class is a class defined inside another class
+IntNode can be static because it doesn't need access to a specific outer SLList object
+first was originally a reference to the first real node
+After introducing a sentinel, sentinel.next is the first real node
+The sentinel is a dummy node and its item does not matter
+The sentinel does NOT count toward size
+A sentinel is still present in an empty list
+Sentinels reduce the number of special cases we need
+p/current variables can be used to traverse linked lists without changing the starting reference
+p = p.next moves p
+p.next = something actually changes a link in the list
+Storing size makes size() faster because we don't have to traverse the entire list every time
+Every method that adds or removes elements needs to keep size correct
+An invariant is a condition that should always remain true about the data structure
+
+Important pointer tracing:
+
+sentinel -> 3 -> 7 -> 12 -> null
+sentinel.next.item
+
+is:
+
+3
+sentinel.next.next.item
+
+is:
+
+7
+sentinel.next.next.next.item
+
+is:
+
+12
+
+If:
+
+IntNode p = sentinel.next;
+p = p.next;
+p.item = 100;
+
+Then:
+
+sentinel -> 3 -> 100 -> 12 -> null
+
+because p eventually points to the node containing 7 and p.item = 100 modifies that actual node
+
+The main progression of this lecture is basically:
+
+IntList
+↓
+Create an SLList wrapper
+↓
+Hide internal nodes using private
+↓
+Put IntNode inside SLList as a nested class
+↓
+Make IntNode static since it doesn't need the outer SLList
+↓
+Store size instead of recalculating it
+↓
+Allow empty SLLists
+↓
+Notice empty lists cause special cases
+↓
+Add a sentinel node
+↓
+Now empty and non-empty lists can mostly use the same code
+
+The biggest idea from the lecture:
+An SLList is a wrapper around linked IntNodes that hides its internal implementation from the user, keeps track of useful information like size, and uses a sentinel node so that operations are easier to implement without lots of special cases.
